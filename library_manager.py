@@ -1,28 +1,18 @@
-
 import streamlit as st
 import os
+import json
 
-LIBRARY_FILE = "library.txt"
+# JSON file to store the library
+LIBRARY_FILE = "library.json"
 
-# Load and save functions
-def load_library():
-    if os.path.exists(LIBRARY_FILE):
-        with open(LIBRARY_FILE, "r") as file:
-            return eval(file.read())
-    return []
-
-def save_library(library):
-    with open(LIBRARY_FILE, "w") as file:
-        file.write(str(library))
-
-# Optional books (3)
+# ✅ Optional Books (3)
 OPTIONAL_BOOKS = [
     {"title": "The Secret", "author": "Rhonda Byrne", "year": 2006, "genre": "Self-help", "read": False},
     {"title": "Zindagi Gulzar Hai", "author": "Umera Ahmed", "year": 2012, "genre": "Drama", "read": False},
     {"title": "The Key to Success", "author": "Jim Rohn", "year": 1986, "genre": "Motivational", "read": False}
 ]
 
-# Motivational & Educational Books
+# ✅ Motivational & Educational Books
 MOTIVATIONAL_BOOKS = [
     {"title": "Think and Grow Rich", "author": "Napoleon Hill", "year": 1937, "genre": "Self-help", "read": False},
     {"title": "Rich Dad Poor Dad", "author": "Robert Kiyosaki", "year": 1997, "genre": "Financial Education", "read": False},
@@ -31,112 +21,124 @@ MOTIVATIONAL_BOOKS = [
     {"title": "Man's Search for Meaning", "author": "Viktor E. Frankl", "year": 1946, "genre": "Philosophy", "read": False}
 ]
 
-# App layout
-st.title("📚 Personal Library Manager")
+# 🔄 Load library from JSON file
+def load_library():
+    if os.path.exists(LIBRARY_FILE):
+        with open(LIBRARY_FILE, "r") as file:
+            return json.load(file)
+    return []
 
+# 💾 Save library to file
+def save_library(library):
+    with open(LIBRARY_FILE, "w") as file:
+        json.dump(library, file)
+
+# 📚 Load current library
 library = load_library()
 
-menu = ["Add Book", "Remove Book", "Search Book", "Display All", "Statistics", "Mark as Read", "Exit"]
-choice = st.sidebar.selectbox("Select an option", menu)
+# 🌟 Streamlit UI
+st.title("📚 Personal Library Manager")
 
-if choice == "Add Book":
+# 🎛 Sidebar Menu
+menu = [
+    "Add a Book", 
+    "Remove a Book", 
+    "Search a Book", 
+    "Show All Books", 
+    "Library Stats", 
+    "Add Predefined Books"
+]
+choice = st.sidebar.selectbox("Choose an Option", menu)
+
+# ➕ Add a Book
+if choice == "Add a Book":
     st.subheader("➕ Add a New Book")
-    title = st.text_input("Book Title")
-    author = st.text_input("Author")
-    year = st.number_input("Publication Year", min_value=0, max_value=2050, step=1)
-    genre = st.text_input("Genre")
-    read = st.checkbox("Have you read this book?")
+
+    title = st.text_input("📖 Enter the book title")
+    author = st.text_input("✍️ Enter the author")
+    year = st.number_input("📅 Enter the publication year", min_value=0, step=1)
+    genre = st.text_input("📚 Enter the genre")
+    read_status = st.radio("✅ Have you read this book?", ["Yes", "No"])
+
     if st.button("Add Book"):
-        library.append({
+        book = {
             "title": title,
             "author": author,
-            "year": year,
+            "year": int(year),
             "genre": genre,
-            "read": read
-        })
+            "read": True if read_status == "Yes" else False
+        }
+        library.append(book)
         save_library(library)
-        st.success("Book added successfully!")
+        st.success("✅ Book added successfully!")
 
-elif choice == "Remove Book":
+# 🗑 Remove a Book
+elif choice == "Remove a Book":
     st.subheader("🗑️ Remove a Book")
-    titles = [book["title"] for book in library]
-    if titles:
-        selected = st.selectbox("Select a book to remove", titles)
-        if st.button("Remove"):
-            library = [book for book in library if book["title"] != selected]
-            save_library(library)
-            st.success("Book removed!")
-    else:
-        st.info("No books to remove.")
-
-elif choice == "Search Book":
-    st.subheader("🔍 Search for a Book")
-    search_by = st.radio("Search by", ["Title", "Author"])
-    keyword = st.text_input("Enter keyword to search")
-    if st.button("Search"):
-        results = []
-        if search_by == "Title":
-            results = [b for b in library if keyword.lower() in b["title"].lower()]
-        else:
-            results = [b for b in library if keyword.lower() in b["author"].lower()]
-        if results:
-            for book in results:
-                st.markdown(f"- **{book['title']}** by *{book['author']}* ({book['year']}) - {book['genre']} - {'✅ Read' if book['read'] else '❌ Unread'}")
-        else:
-            st.warning("No matching books found.")
-
-elif choice == "Display All":
-    st.subheader("📖 All Books in Your Library")
     if library:
-        for i, book in enumerate(library, 1):
-            st.write(f"{i}. **{book['title']}** by {book['author']} ({book['year']}) - {book['genre']} - {'✅ Read' if book['read'] else '❌ Unread'}")
+        book_titles = [book["title"] for book in library]
+        selected_title = st.selectbox("Select a book to remove", book_titles)
+        if st.button("Remove Book"):
+            library = [book for book in library if book["title"] != selected_title]
+            save_library(library)
+            st.success(f"'{selected_title}' removed successfully!")
     else:
         st.info("Your library is empty.")
 
-elif choice == "Statistics":
+# 🔍 Search a Book
+elif choice == "Search a Book":
+    st.subheader("🔍 Search for a Book")
+    search_by = st.radio("Search by:", ["Title", "Author"])
+    query = st.text_input("Enter your search keyword")
+
+    if query:
+        if search_by == "Title":
+            results = [book for book in library if query.lower() in book["title"].lower()]
+        else:
+            results = [book for book in library if query.lower() in book["author"].lower()]
+
+        if results:
+            for book in results:
+                st.markdown(f"**{book['title']}** by {book['author']} ({book['year']}) - {book['genre']} - {'✅ Read' if book['read'] else '📖 Unread'}")
+        else:
+            st.warning("No matching books found.")
+
+# 📖 Show All Books
+elif choice == "Show All Books":
+    st.subheader("📚 Your Library")
+    if library:
+        for i, book in enumerate(library, 1):
+            status = "✅ Read" if book["read"] else "📖 Unread"
+            st.write(f"{i}. **{book['title']}** by {book['author']} ({book['year']}) - {book['genre']} - {status}")
+    else:
+        st.info("Your library is empty.")
+
+# 📊 Show Stats
+elif choice == "Library Stats":
     st.subheader("📊 Library Statistics")
     total = len(library)
-    read_count = sum(1 for b in library if b["read"])
-    unread_count = total - read_count
-    percent = (read_count / total * 100) if total > 0 else 0
-    st.write(f"📚 Total Books: **{total}**")
-    st.write(f"✅ Books Read: **{read_count}**")
-    st.write(f"❌ Books Unread: **{unread_count}**")
-    st.write(f"📈 Reading Progress: **{percent:.2f}%**")
+    read = sum(1 for book in library if book["read"])
+    unread = total - read
+    percentage = (read / total) * 100 if total > 0 else 0
 
-elif choice == "Mark as Read":
-    st.subheader("📌 Mark a Book as Read")
-    unread_books = [book for book in library if not book["read"]]
-    if unread_books:
-        book_titles = [book["title"] for book in unread_books]
-        selected = st.selectbox("Select a book to mark as read", book_titles)
-        if st.button("Mark as Read"):
-            for book in library:
-                if book["title"] == selected:
-                    book["read"] = True
-                    break
+    st.write(f"**Total Books:** {total}")
+    st.write(f"**Books Read:** {read}")
+    st.write(f"**Books Unread:** {unread}")
+    st.progress(percentage / 100)
+
+# 📘 Add Predefined Books
+elif choice == "Add Predefined Books":
+    st.subheader("📘 Add Predefined Books")
+    category = st.radio("Choose category:", ["Optional Books", "Motivational Books"])
+
+    if category == "Optional Books":
+        if st.button("Add Optional Books"):
+            library.extend(OPTIONAL_BOOKS)
             save_library(library)
-            st.success(f"Marked '{selected}' as Read ✅")
-    else:
-        st.info("All books are already marked as read!")
+            st.success("✅ Optional books added!")
 
-elif choice == "Exit":
-    st.info("Goodbye! 👋")
-
-# 📘 Optional Book Section
-with st.expander("📘 Optional Books to Add"):
-    st.write("Select any book to add to your library:")
-    for i, book in enumerate(OPTIONAL_BOOKS):
-        if st.checkbox(f"{book['title']} by {book['author']} ({book['year']})", key=f"opt_{i}"):
-            if book not in library:
-                library.append(book)
-    save_library(library)
-
-# 🌟 Motivational & Educational Book Section
-with st.expander("🌟 Motivational & Educational Books"):
-    st.write("These books are great for mindset, money and life wisdom:")
-    for i, book in enumerate(MOTIVATIONAL_BOOKS):
-        if st.checkbox(f"{book['title']} by {book['author']} ({book['year']})", key=f"mot_{i}"):
-            if book not in library:
-                library.append(book)
-    save_library(library)
+    elif category == "Motivational Books":
+        if st.button("Add Motivational Books"):
+            library.extend(MOTIVATIONAL_BOOKS)
+            save_library(library)
+            st.success("✅ Motivational books added!")

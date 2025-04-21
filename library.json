@@ -1,9 +1,1 @@
-[
-    {
-        "title": "Atomic Habits",
-        "author": "James Clear",
-        "year": 2018,
-        "genre": "Self-help",
-        "read": false
-    }
-]
+[{"title": "Atomic Habits", "author": "James Clear", "year": 2018, "genre": "Self-help", "read": false}, {"title": "Think and Grow Rich", "author": "Napoleon Hill", "year": 1937, "genre": "Self-help", "read": false}, {"title": "Rich Dad Poor Dad", "author": "Robert Kiyosaki", "year": 1997, "genre": "Financial Education", "read": false}, {"title": "The 7 Habits of Highly Effective People", "author": "Stephen R. Covey", "year": 1989, "genre": "Personal Growth", "read": false}, {"title": "The Power of Now", "author": "Eckhart Tolle", "year": 1997, "genre": "Mindfulness", "read": false}, {"title": "Man's Search for Meaning", "author": "Viktor E. Frankl", "year": 1946, "genre": "Philosophy", "read": false}]
